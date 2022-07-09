@@ -34,30 +34,30 @@ namespace QekaCrypt
 
         private void CryptProcessStart(CryptDirection cryptDirection)
         {
-            CryptProcess cryptographyProcess = new (SettingsPanel.CryptMode,
+            CryptProcess cryptProcess = new (SettingsPanel.CryptMode,
                                                         cryptDirection,
                                                         cryptTargetTextBox.Text,
                                                         keyTextBox.Text);
-
-            CryptProcessView cryptographyProcessView = new()
+            CryptProcessHandler cryptProcessHandler = new(cryptProcess);
+            CryptProcessView cryptProcessView = new()
             {
-                CryptProcess = cryptographyProcess
+                CryptProcessHandler = cryptProcessHandler
             };
-            cryptProcessViewPanel.CryptProcessViewCollection.Add(cryptographyProcessView);
-            cryptographyProcessView.ResultReady += InstallResult;
-            cryptographyProcessView.Start();
+            cryptProcessViewPanel.CryptProcessViewCollection.Add(cryptProcessView);
+            cryptProcessHandler.ResultReady += InstallResult;
+            cryptProcessHandler.Start();
         }
 
         private void InstallResult(object sender, ResultReadyEventArgs e)
         {
-            if (sender is not CryptProcessView cryptographyProcessView)
+            if (sender is not CryptProcessHandler cryptProcessView)
                 return;
 
 
             Dispatcher.Invoke(() => cryptTargetTextBox.Text = e.Result);
         }
 
-        private void fileReviewButton_Click(object sender, RoutedEventArgs e)
+        private void FileReviewButton_Click(object sender, RoutedEventArgs e)
         {
             if (SettingsPanel.CryptMode == CryptMode.File)
             {

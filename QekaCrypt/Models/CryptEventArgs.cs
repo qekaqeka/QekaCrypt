@@ -10,11 +10,13 @@ namespace QekaCrypt
     {
         public readonly byte[] Data;
         public readonly long TotalSize;
+        public readonly ActionsOnData ActionsOnData;
 
-        public CryptEventArgs(byte[] data, long totalSize)
+        public CryptEventArgs(byte[] data, long totalSize, ActionsOnData actionsOnData)
         {
             Data = data;
             TotalSize = totalSize;
+            ActionsOnData = actionsOnData;
         }
     }
 }

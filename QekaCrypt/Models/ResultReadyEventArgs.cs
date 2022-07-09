@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace QekaCrypt
 {
-    public class ResultReadyEventArgs
+    public class ResultReadyEventArgs : EventArgs
     {
         public readonly string Result;
 

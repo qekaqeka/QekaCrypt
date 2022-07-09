@@ -18,7 +18,7 @@ namespace QekaCrypt
         public string CryptTarget { get; private set; }
         public byte[] Key { get; private set; }
 
-        public bool IsStarted { get; private set; }
+        public bool Occupied { get; private set; }
 
         private readonly object synchDummy = new(); 
 
@@ -35,7 +35,7 @@ namespace QekaCrypt
             this.CryptTarget = CryptTarget;
             Key = Encoding.UTF32.GetBytes(key);
             keyLength = Key.Length;
-            IsStarted = false;
+            Occupied = false;
         }
 
         public void Start()
@@ -43,7 +43,7 @@ namespace QekaCrypt
             try
             {
                 Monitor.Enter(synchDummy);
-                IsStarted = true;
+                Occupied = true;
                 switch (CryptMode)
                 {
                     case CryptMode.Text:
@@ -61,7 +61,7 @@ namespace QekaCrypt
             finally
             {
                 Monitor.Exit(synchDummy);
-                IsStarted = false;
+                Occupied = false;
             }
         }
 
@@ -99,7 +99,7 @@ namespace QekaCrypt
 
             byte[] fileNameByteArray = DecryptByteArray(br.ReadBytes(fileNameByteArrayLenght));
 
-            DataReady?.Invoke(this, new CryptEventArgs(fileNameByteArray, totalSize));
+            DataReady?.Invoke(this, new CryptEventArgs(fileNameByteArray, totalSize, ActionsOnData.CreateFile));
 
             int byteArraySize = keyLength * 256;
             byte[] byteArray = new byte[byteArraySize];
@@ -115,10 +115,10 @@ namespace QekaCrypt
                     throw new Exception("Произошла ошибка при чтении файла");
                 }
 
-                DataReady?.Invoke(this, new CryptEventArgs(DecryptByteArray(byteArray), totalSize));
+                DataReady?.Invoke(this, new CryptEventArgs(DecryptByteArray(byteArray), totalSize, ActionsOnData.Write));
             }
 
-            Finished?.Invoke(this, new CryptEventArgs(Array.Empty<byte>(), totalSize));
+            Finished?.Invoke(this, new CryptEventArgs(Array.Empty<byte>(), totalSize, ActionsOnData.Ignore));
             br.Dispose();
         }
         private void CryptFile(string filePath)
@@ -148,7 +148,7 @@ namespace QekaCrypt
 
             totalSize = fileSize + totalExtraInfoArray.Length;
 
-            DataReady?.Invoke(this, new CryptEventArgs(totalExtraInfoArray, totalSize));
+            DataReady?.Invoke(this, new CryptEventArgs(totalExtraInfoArray, totalSize, ActionsOnData.Write));
 
             int byteArraySize = keyLength * 256;
             byte[] byteArray = new byte[byteArraySize];
@@ -164,10 +164,10 @@ namespace QekaCrypt
                     throw new Exception("Произошла ошибка при чтении файла");
                 }
 
-                DataReady?.Invoke(this, new CryptEventArgs(CryptByteArray(byteArray), totalSize));
+                DataReady?.Invoke(this, new CryptEventArgs(CryptByteArray(byteArray), totalSize, ActionsOnData.Write));
             }
 
-            Finished?.Invoke(this, new CryptEventArgs(Array.Empty<byte>(), totalSize));
+            Finished?.Invoke(this, new CryptEventArgs(Array.Empty<byte>(), totalSize, ActionsOnData.Ignore));
             br.Dispose();          
         }
         private void CryptText(string text)
@@ -191,10 +191,10 @@ namespace QekaCrypt
                     result.Append(b.ToString("000"));
                 }
 
-                DataReady?.Invoke(this, new CryptEventArgs(Encoding.UTF32.GetBytes(result.ToString()), totalSize));
+                DataReady?.Invoke(this, new CryptEventArgs(Encoding.UTF32.GetBytes(result.ToString()), totalSize, ActionsOnData.Write));
                 result.Clear();
             }
-            Finished?.Invoke(this, new CryptEventArgs(Array.Empty<byte>(), totalSize));
+            Finished?.Invoke(this, new CryptEventArgs(Array.Empty<byte>(), totalSize, ActionsOnData.Ignore));
         }
         private byte[] CryptByteArray(byte[] byteArray)
         {
@@ -240,14 +240,14 @@ namespace QekaCrypt
                         bytes[j] = Convert.ToByte(temp);
                     }
 
-                    DataReady?.Invoke(this, new CryptEventArgs(DecryptByteArray(bytes),totalSize));
+                    DataReady?.Invoke(this, new CryptEventArgs(DecryptByteArray(bytes), totalSize, ActionsOnData.Write));
                 }
                 catch (Exception)
                 {
                     throw new Exception("Данные повреждены, дешифровка невозможна");
                 }
             }
-            Finished?.Invoke(this, new CryptEventArgs(Array.Empty<byte>(), totalSize));
+            Finished?.Invoke(this, new CryptEventArgs(Array.Empty<byte>(), totalSize, ActionsOnData.Ignore));
         }
 
        

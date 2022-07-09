@@ -26,7 +26,7 @@ namespace QekaCrypt
 
         private readonly CommandBinding closeCommandBinding;
 
-        private void closeCommandExecuted(object? sender, ExecutedRoutedEventArgs e)
+        private void CloseCommandExecuted(object? sender, ExecutedRoutedEventArgs e)
         {
             if (sender is not CryptProcessView cryptProcessView)
                 return;
@@ -40,7 +40,7 @@ namespace QekaCrypt
             if (sender is not CryptProcessView cryptProcessView)
                 return;
 
-            e.CanExecute = ! cryptProcessView.CryptProcess.IsStarted;
+            e.CanExecute = ! cryptProcessView.CryptProcessHandler.CryptProcess.Occupied;
         }
         static CryptProcessViewPanel()
         {
@@ -62,7 +62,7 @@ namespace QekaCrypt
 
             closeCommandBinding = new();
             closeCommandBinding.Command = ApplicationCommands.Close;
-            closeCommandBinding.Executed += closeCommandExecuted;
+            closeCommandBinding.Executed += CloseCommandExecuted;
             closeCommandBinding.CanExecute += CloseCommandBinding_CanExecute;
         }
 
